@@ -12,6 +12,10 @@ type Promise[T any, P Promise[T, P]] interface {
 	Await() (T, error)
 }
 
+func DoubleThen[T any, P Promise[T, P]](p P, fn func(T) (T, error)) P {
+	return p.Then(fn).Then(fn)
+}
+
 type promise[T any] struct {
 	value T
 	err   error
@@ -97,7 +101,12 @@ func main() {
 		return 10, nil
 	})
 
-	result, err := p.
+	doubled := DoubleThen(p, func(v int) (int, error) {
+		fmt.Println("double:", v)
+		return v * 2, nil
+	})
+
+	result, err := doubled.
 		Then(func(v int) (int, error) {
 			fmt.Println("step1:", v)
 			return v * 2, nil
